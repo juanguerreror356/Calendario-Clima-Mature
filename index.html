@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario de Celebraciones MeLi</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ==================== RESET & BASE ==================== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-snap-type: y mandatory; overflow-x: hidden; }
+body { font-family: 'Inter', sans-serif; background: #0a0a1a; color: white; overflow-x: hidden; }
+
+/* ==================== SLIDES ==================== */
+.slide {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  position: relative;
+  scroll-snap-align: start;
+  overflow: hidden;
+}
+
+/* ==================== NAVEGACIÓN ==================== */
+.nav-dots {
+  position: fixed;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1000;
+}
+.nav-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 2px solid rgba(255,255,255,0.3);
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+.nav-dot:hover, .nav-dot.active {
+  background: #FFE600;
+  border-color: #FFE600;
+  transform: scale(1.3);
+}
+.nav-dot::after {
+  content: attr(data-label);
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.nav-dot:hover::after { opacity: 1; }
+
+.nav-arrows {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  z-index: 1000;
+}
+.nav-arrow {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+.nav-arrow:hover { background: #FFE600; color: #333; transform: scale(1.1); }
+
+/* ==================== PARTÍCULAS ==================== */
+.particles {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  animation: float linear infinite;
+  opacity: 0.3;
+}
+@keyframes float {
+  0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.3; }
+  90% { opacity: 0.3; }
+  100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+}
+
+/* ==================== CONFETTI ==================== */
+.confetti-container { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; overflow: hidden; }
+.confetti {
+  position: absolute;
+  top: -20px;
+  width: 10px;
+  height: 10px;
+  animation: confettiFall linear infinite;
+}
+@keyframes confettiFall {
+  0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(1080deg); opacity: 0; }
+}
+
+/* ==================== SLIDE 1: PORTADA ==================== */
+.slide-portada { background: linear-gradient(135deg, #0a0a2e 0%, #1a1a4e 50%, #0a0a2e 100%); }
+.portada-content { text-align: center; position: relative; z-index: 2; }
+.portada-emoji { font-size: 80px; animation: bounce 2s ease-in-out infinite; margin-bottom: 20px; display: block; }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+.portada-title { font-size: clamp(36px, 6vw, 72px); font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
+.portada-title .yellow { color: #FFE600; }
+.portada-title .blue { color: #3483FA; }
+.portada-subtitle { font-size: clamp(16px, 2.5vw, 24px); color: rgba(255,255,255,0.6); font-weight: 400; margin-bottom: 40px; }
+.portada-badge { display: inline-flex; align-items: center; gap: 10px; padding: 12px 28px; background: rgba(255,230,0,0.1); border: 1px solid rgba(255,230,0,0.3); border-radius: 50px; font-weight: 700; color: #FFE600; font-size: 14px; }
+.portada-badge .heart { animation: pulse 1.5s ease-in-out infinite; display: inline-block; }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+.glow-ring {
+  position: absolute;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  border: 1px solid rgba(52,131,250,0.1);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  animation: glowPulse 4s ease-in-out infinite;
+}
+.glow-ring:nth-child(2) { width: 700px; height: 700px; animation-delay: 1s; border-color: rgba(255,230,0,0.05); }
+.glow-ring:nth-child(3) { width: 900px; height: 900px; animation-delay: 2s; }
+@keyframes glowPulse { 0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); } }
+
+/* ==================== SLIDE 2: LA PREGUNTA ==================== */
+.slide-pregunta { background: linear-gradient(135deg, #1a0a2e, #0a1a3e); }
+.pregunta-text {
+  font-size: clamp(28px, 4.5vw, 56px);
+  font-weight: 800;
+  text-align: center;
+  max-width: 900px;
+  line-height: 1.3;
+}
+.pregunta-text .word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: wordReveal 0.5s forwards;
+}
+@keyframes wordReveal { to { opacity: 1; transform: translateY(0); } }
+.pregunta-emoji { font-size: 60px; margin-bottom: 30px; display: block; text-align: center; }
+.pregunta-sub { margin-top: 40px; font-size: 18px; color: rgba(255,255,255,0.4); text-align: center; font-style: italic; }
+
+/* ==================== SLIDE 3: EL PROBLEMA ==================== */
+.slide-problema { background: linear-gradient(135deg, #1a0a0a, #2a1a1a); }
+.problema-container { max-width: 1100px; width: 100%; }
+.problema-title { text-align: center; font-size: clamp(24px, 3.5vw, 42px); font-weight: 900; margin-bottom: 50px; }
+.problema-title .red { color: #F23D4F; }
+.team-visual {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 40px;
+  position: relative;
+}
+.team-member {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  animation: memberPop 0.5s backwards;
+  position: relative;
+  cursor: default;
+}
+.team-member::after {
+  content: attr(data-info);
+  position: absolute;
+  bottom: -28px;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0.6;
+}
+.team-leader {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFE600, #FFD000);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  border: 3px solid #FFE600;
+  box-shadow: 0 0 30px rgba(255,230,0,0.3);
+  animation: leaderGlow 2s ease-in-out infinite;
+}
+@keyframes leaderGlow { 0%, 100% { box-shadow: 0 0 30px rgba(255,230,0,0.3); } 50% { box-shadow: 0 0 60px rgba(255,230,0,0.5); } }
+@keyframes memberPop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.problema-math {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 40px;
+}
+.math-box {
+  padding: 16px 28px;
+  border-radius: 16px;
+  font-weight: 800;
+  font-size: clamp(14px, 2vw, 20px);
+  text-align: center;
+  transition: transform 0.3s;
+}
+.math-box:hover { transform: scale(1.05); }
+.math-box.cumple { background: rgba(255,230,0,0.15); border: 2px solid #FFE600; color: #FFE600; }
+.math-box.meli { background: rgba(52,131,250,0.15); border: 2px solid #3483FA; color: #3483FA; }
+.math-box.act { background: rgba(123,97,255,0.15); border: 2px solid #7B61FF; color: #7B61FF; }
+.math-box.result { background: rgba(242,61,79,0.15); border: 2px solid #F23D4F; color: #F23D4F; font-size: clamp(16px, 2.2vw, 24px); }
+.math-sign { font-size: 28px; font-weight: 900; color: rgba(255,255,255,0.4); }
+
+/* ==================== SLIDE 4: EL DOLOR ==================== */
+.slide-dolor { background: linear-gradient(135deg, #1a0a1a, #0a1a2a); }
+.dolor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  max-width: 1000px;
+  width: 100%;
+}
+.dolor-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 30px 24px;
+  text-align: center;
+  transition: all 0.4s;
+  backdrop-filter: blur(10px);
+}
+.dolor-card:hover { transform: translateY(-8px); border-color: rgba(242,61,79,0.4); background: rgba(242,61,79,0.05); }
+.dolor-icon { font-size: 44px; margin-bottom: 16px; display: block; }
+.dolor-text { font-weight: 700; font-size: 15px; line-height: 1.5; }
+.dolor-text .highlight { color: #F23D4F; }
+.section-title { text-align: center; font-size: clamp(24px, 3.5vw, 42px); font-weight: 900; margin-bottom: 50px; }
+
+/* ==================== SLIDE 5: LA SOLUCIÓN ==================== */
+.slide-solucion { background: linear-gradient(135deg, #0a1a0a, #0a2a1a); }
+.solucion-reveal {
+  text-align: center;
+  max-width: 1000px;
+}
+.solucion-icon { font-size: 100px; margin-bottom: 30px; display: block; animation: bounce 2s ease-in-out infinite; }
+.solucion-title { font-size: clamp(32px, 5vw, 64px); font-weight: 900; margin-bottom: 20px; }
+.solucion-title .green { color: #00A650; }
+.solucion-desc { font-size: clamp(16px, 2vw, 22px); color: rgba(255,255,255,0.6); max-width: 700px; margin: 0 auto 40px; line-height: 1.6; }
+.solucion-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+.solucion-pill {
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: pillSlide 0.5s backwards;
+}
+@keyframes pillSlide { from { transform: translateX(-30px); opacity: 0; } }
+.solucion-pill.p1 { background: rgba(255,230,0,0.15); color: #FFE600; border: 1px solid rgba(255,230,0,0.3); }
+.solucion-pill.p2 { background: rgba(52,131,250,0.15); color: #3483FA; border: 1px solid rgba(52,131,250,0.3); }
+.solucion-pill.p3 { background: rgba(0,166,80,0.15); color: #00A650; border: 1px solid rgba(0,166,80,0.3); }
+.solucion-pill.p4 { background: rgba(123,97,255,0.15); color: #7B61FF; border: 1px solid rgba(123,97,255,0.3); }
+.solucion-pill.p5 { background: rgba(255,107,53,0.15); color: #FF6B35; border: 1px solid rgba(255,107,53,0.3); }
+
+/* ==================== SLIDE 6: ARQUITECTURA SIMPLE ==================== */
+.slide-arquitectura { background: linear-gradient(135deg, #0a0a2e, #1a1a3e); }
+.arq-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+  max-width: 1100px;
+}
+.arq-step {
+  text-align: center;
+  padding: 24px;
+  position: relative;
+  flex: 1;
+  min-width: 160px;
+}
+.arq-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  margin: 0 auto 16px;
+  transition: transform 0.3s;
+  position: relative;
+}
+.arq-circle:hover { transform: scale(1.15); }
+.arq-circle.c1 { background: linear-gradient(135deg, rgba(255,230,0,0.2), rgba(255,230,0,0.05)); border: 2px solid #FFE600; }
+.arq-circle.c2 { background: linear-gradient(135deg, rgba(0,166,80,0.2), rgba(0,166,80,0.05)); border: 2px solid #00A650; }
+.arq-circle.c3 { background: linear-gradient(135deg, rgba(52,131,250,0.2), rgba(52,131,250,0.05)); border: 2px solid #3483FA; }
+.arq-circle.c4 { background: linear-gradient(135deg, rgba(123,97,255,0.2), rgba(123,97,255,0.05)); border: 2px solid #7B61FF; }
+.arq-label { font-weight: 800; font-size: 14px; margin-bottom: 4px; }
+.arq-sub { font-size: 12px; color: rgba(255,255,255,0.5); }
+.arq-arrow {
+  font-size: 28px;
+  color: rgba(255,255,255,0.3);
+  animation: arrowPulse 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes arrowPulse { 0%, 100% { opacity: 0.3; transform: translateX(0); } 50% { opacity: 0.8; transform: translateX(5px); } }
+
+.arq-outputs {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+.arq-output {
+  padding: 16px 24px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  text-align: center;
+  transition: all 0.3s;
+  min-width: 140px;
+}
+.arq-output:hover { transform: translateY(-4px); border-color: rgba(255,230,0,0.3); }
+.arq-output-icon { font-size: 32px; margin-bottom: 8px; }
+.arq-output-label { font-weight: 700; font-size: 13px; }
+
+/* ==================== SLIDE 7: FUNCIONALIDADES ==================== */
+.slide-funcionalidades { background: linear-gradient(135deg, #0a1a2e, #1a0a3e); }
+.func-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  max-width: 1200px;
+  width: 100%;
+}
+.func-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 28px;
+  transition: all 0.4s;
+  position: relative;
+  overflow: hidden;
+}
+.func-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  border-radius: 20px 20px 0 0;
+}
+.func-card:hover { transform: translateY(-8px); background: rgba(255,255,255,0.06); }
+.func-card.fc1::before { background: #FFE600; }
+.func-card.fc1:hover { border-color: rgba(255,230,0,0.3); }
+.func-card.fc2::before { background: #3483FA; }
+.func-card.fc2:hover { border-color: rgba(52,131,250,0.3); }
+.func-card.fc3::before { background: #00A650; }
+.func-card.fc3:hover { border-color: rgba(0,166,80,0.3); }
+.func-card.fc4::before { background: #7B61FF; }
+.func-card.fc4:hover { border-color: rgba(123,97,255,0.3); }
+.func-card.fc5::before { background: #FF6B35; }
+.func-card.fc5:hover { border-color: rgba(255,107,53,0.3); }
+.func-card.fc6::before { background: #F23D4F; }
+.func-card.fc6:hover { border-color: rgba(242,61,79,0.3); }
+.func-emoji { font-size: 36px; margin-bottom: 16px; }
+.func-title { font-weight: 800; font-size: 18px; margin-bottom: 8px; }
+.func-desc { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+.func-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.func-tag { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); }
+
+/* ==================== SLIDE 8: CALENDARIO VISUAL ==================== */
+.slide-calendario { background: linear-gradient(135deg, #0a0a2e, #0a1a3e); }
+.cal-mockup {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  padding: 24px;
+  max-width: 800px;
+  width: 100%;
+  backdrop-filter: blur(10px);
+}
+.cal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.cal-title { font-size: 24px; font-weight: 900; }
+.cal-nav { display: flex; gap: 8px; }
+.cal-nav-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: default;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.cal-day-header { text-align: center; font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.4); padding: 8px; }
+.cal-day {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.02);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  border: 1px solid transparent;
+  transition: all 0.3s;
+  position: relative;
+  gap: 4px;
+}
+.cal-day:hover { background: rgba(255,255,255,0.06); }
+.cal-day.today { background: rgba(52,131,250,0.2); border-color: #3483FA; }
+.cal-day.has-cumple { background: rgba(255,230,0,0.1); border-color: rgba(255,230,0,0.4); }
+.cal-day.has-meli { background: rgba(52,131,250,0.1); border-color: rgba(52,131,250,0.4); }
+.cal-day.has-both { background: linear-gradient(135deg, rgba(255,230,0,0.1), rgba(52,131,250,0.1)); border-color: #7B61FF; }
+.cal-day.has-act { background: rgba(123,97,255,0.1); border-color: rgba(123,97,255,0.4); }
+.cal-day .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
+.cal-day .cal-dots { display: flex; gap: 3px; }
+.cal-day.empty { background: transparent; }
+
+/* ==================== SLIDE 9: PRINCIPIOS ==================== */
+.slide-principios { background: linear-gradient(135deg, #1a0a2e, #2a1a4e); }
+.principios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  max-width: 1000px;
+  width: 100%;
+}
+.principio-card {
+  padding: 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.4s;
+  cursor: default;
+}
+.principio-card:hover { transform: translateY(-4px) scale(1.02); }
+.principio-card .p-emoji { font-size: 36px; flex-shrink: 0; }
+.principio-card .p-text { font-weight: 700; font-size: 15px; line-height: 1.4; }
+
+/* ==================== SLIDE 10: DATOS ==================== */
+.slide-datos { background: linear-gradient(135deg, #0a1a0a, #1a2a1a); }
+.datos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  max-width: 900px;
+  width: 100%;
+}
+.dato-card {
+  text-align: center;
+  padding: 32px 20px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.4s;
+}
+.dato-card:hover { transform: translateY(-8px); }
+.dato-icon { font-size: 40px; margin-bottom: 12px; }
+.dato-number {
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 900;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--c1), var(--c2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.dato-label { font-size: 13px; color: rgba(255,255,255,0.5); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+
+/* ==================== SLIDE 11: FEATURES EXTRA ==================== */
+.slide-features { background: linear-gradient(135deg, #1a1a2e, #0a0a2e); }
+.features-list {
+  max-width: 700px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 24px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  transition: all 0.4s;
+}
+.feature-item:hover { transform: translateX(10px); background: rgba(255,255,255,0.06); }
+.feature-icon { font-size: 32px; flex-shrink: 0; }
+.feature-text { flex: 1; }
+.feature-title { font-weight: 800; margin-bottom: 4px; }
+.feature-desc { font-size: 13px; color: rgba(255,255,255,0.5); }
+
+/* ==================== SLIDE 12: STACK ==================== */
+.slide-stack { background: linear-gradient(135deg, #0a0a2e, #0a1a2e); }
+.stack-visual {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+  max-width: 800px;
+}
+.stack-item {
+  width: 120px;
+  height: 120px;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.4s;
+}
+.stack-item:hover { transform: translateY(-8px) rotate(-3deg); background: rgba(255,255,255,0.06); }
+.stack-icon { font-size: 36px; }
+.stack-label { font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); }
+.stack-cost {
+  margin-top: 40px;
+  text-align: center;
+  padding: 20px 40px;
+  background: rgba(0,166,80,0.1);
+  border: 2px solid #00A650;
+  border-radius: 20px;
+  font-size: clamp(20px, 3vw, 32px);
+  font-weight: 900;
+  color: #00A650;
+}
+
+/* ==================== SLIDE 13: CIERRE ==================== */
+.slide-cierre { background: linear-gradient(135deg, #0a0a2e 0%, #1a1a4e 50%, #0a0a2e 100%); }
+.cierre-content { text-align: center; position: relative; z-index: 2; }
+.cierre-emoji { font-size: 80px; margin-bottom: 30px; display: block; }
+.cierre-title { font-size: clamp(28px, 4vw, 48px); font-weight: 900; margin-bottom: 16px; line-height: 1.3; }
+.cierre-name {
+  font-size: clamp(18px, 2.5vw, 28px);
+  font-weight: 700;
+  color: #FFE600;
+  margin-bottom: 12px;
+}
+.cierre-sub { font-size: 16px; color: rgba(255,255,255,0.4); margin-bottom: 40px; }
+.cierre-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.cierre-link {
+  padding: 12px 28px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cierre-link.primary { background: #FFE600; color: #333; }
+.cierre-link.primary:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(255,230,0,0.3); }
+.cierre-link.secondary { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
+.cierre-link.secondary:hover { background: rgba(255,255,255,0.2); transform: translateY(-3px); }
+
+/* ==================== ANIMACIONES SCROLL ==================== */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-60px);
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.reveal-left.visible { opacity: 1; transform: translateX(0); }
+.reveal-right {
+  opacity: 0;
+  transform: translateX(60px);
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.reveal-right.visible { opacity: 1; transform: translateX(0); }
+
+/* ==================== PROGRESS BAR ==================== */
+.progress-bar-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #FFE600, #3483FA, #00A650, #7B61FF);
+  z-index: 2000;
+  transition: width 0.3s;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  .slide { padding: 40px 20px; }
+  .nav-dots { right: 10px; gap: 8px; }
+  .nav-dot { width: 8px; height: 8px; }
+  .nav-dot::after { display: none; }
+  .problema-math { gap: 10px; }
+  .math-box { padding: 10px 16px; font-size: 13px; }
+  .arq-flow { flex-direction: column; }
+  .arq-arrow { transform: rotate(90deg); }
+  .team-member { width: 50px; height: 50px; font-size: 20px; }
+  .team-leader { width: 65px; height: 65px; font-size: 28px; }
+  .cal-day { font-size: 11px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div class="progress-bar-top" id="progressBar"></div>
+
+<!-- Navigation Dots -->
+<nav class="nav-dots" id="navDots">
+  <div class="nav-dot active" data-slide="0" data-label="Inicio"></div>
+  <div class="nav-dot" data-slide="1" data-label="La Pregunta"></div>
+  <div class="nav-dot" data-slide="2" data-label="El Problema"></div>
+  <div class="nav-dot" data-slide="3" data-label="El Dolor"></div>
+  <div class="nav-dot" data-slide="4" data-label="La Solución"></div>
+  <div class="nav-dot" data-slide="5" data-label="Cómo Funciona"></div>
+  <div class="nav-dot" data-slide="6" data-label="Funcionalidades"></div>
+  <div class="nav-dot" data-slide="7" data-label="Calendario"></div>
+  <div class="nav-dot" data-slide="8" data-label="Principios"></div>
+  <div class="nav-dot" data-slide="9" data-label="Impacto"></div>
+  <div class="nav-dot" data-slide="10" data-label="Detalles"></div>
+  <div class="nav-dot" data-slide="11" data-label="Tecnología"></div>
+  <div class="nav-dot" data-slide="12" data-label="Cierre"></div>
+</nav>
+
+<!-- Navigation Arrows -->
+<div class="nav-arrows">
+  <button class="nav-arrow" id="prevBtn">▲</button>
+  <button class="nav-arrow" id="nextBtn">▼</button>
+</div>
+
+<!-- ==================== SLIDE 1: PORTADA ==================== -->
+<section class="slide slide-portada" id="slide-0">
+  <div class="particles" id="particles1"></div>
+  <div class="glow-ring"></div>
+  <div class="glow-ring"></div>
+  <div class="glow-ring"></div>
+  <div class="confetti-container" id="confetti1"></div>
+  <div class="portada-content">
+    <span class="portada-emoji">🎉</span>
+    <h1 class="portada-title">
+      Calendario de<br>
+      <span class="yellow">Celebra</span><span class="blue">ciones</span>
+    </h1>
+    <p class="portada-subtitle">Una herramienta para nunca olvidar lo que importa: las personas</p>
+    <div class="portada-badge">
+      Hecho con <span class="heart">💛</span> por Juan Sebastián Guerrero Rodríguez
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 2: LA PREGUNTA ==================== -->
+<section class="slide slide-pregunta" id="slide-1">
+  <div class="particles" id="particles2"></div>
+  <span class="pregunta-emoji reveal">🤔</span>
+  <p class="pregunta-text" id="preguntaText"></p>
+  <p class="pregunta-sub reveal" style="animation-delay: 3s;">— Todos hemos estado ahí.</p>
+</section>
+
+<!-- ==================== SLIDE 3: EL PROBLEMA ==================== -->
+<section class="slide slide-problema" id="slide-2">
+  <div class="problema-container">
+    <h2 class="problema-title reveal">En un equipo de <span class="red">12 personas + 1 líder</span></h2>
+    
+    <div class="team-visual reveal" id="teamVisual">
+      <!-- Se genera con JS -->
+    </div>
+    
+    <div class="problema-math reveal">
+      <div class="math-box cumple">🎂 12 Cumpleaños</div>
+      <span class="math-sign">+</span>
+      <div class="math-box meli">💙 12 Meliversarios</div>
+      <span class="math-sign">+</span>
+      <div class="math-box act">📅 Actividades mensuales</div>
+      <span class="math-sign">=</span>
+      <div class="math-box result">🤯 Caos sin una herramienta</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 4: EL DOLOR ==================== -->
+<section class="slide slide-dolor" id="slide-3">
+  <h2 class="section-title reveal">¿Qué pasa cuando <span style="color:#F23D4F;">no hay sistema</span>?</h2>
+  <div class="dolor-grid">
+    <div class="dolor-card reveal">
+      <span class="dolor-icon">😔</span>
+      <p class="dolor-text">Se <span class="highlight">olvidan cumpleaños</span> y las personas sienten que no importan</p>
+    </div>
+    <div class="dolor-card reveal" style="transition-delay:0.1s;">
+      <span class="dolor-icon">📋</span>
+      <p class="dolor-text">Los datos están <span class="highlight">dispersos</span> en chats, notas y hojas sueltas</p>
+    </div>
+    <div class="dolor-card reveal" style="transition-delay:0.2s;">
+      <span class="dolor-icon">🔇</span>
+      <p class="dolor-text">No hay <span class="highlight">registro</span> de quién fue reconocido y quién no</p>
+    </div>
+    <div class="dolor-card reveal" style="transition-delay:0.3s;">
+      <span class="dolor-icon">📉</span>
+      <p class="dolor-text">El <span class="highlight">clima del equipo</span> se resiente sin celebraciones consistentes</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 5: LA SOLUCIÓN ==================== -->
+<section class="slide slide-solucion" id="slide-4">
+  <div class="solucion-reveal">
+    <span class="solucion-icon reveal">✨</span>
+    <h2 class="solucion-title reveal">Una sola herramienta que<br><span class="green">centraliza todo</span></h2>
+    <p class="solucion-desc reveal">Cumpleaños, meliversarios, actividades, reconocimientos y principios culturales. Todo en un calendario inteligente que vive en Google Sheets.</p>
+    <div class="solucion-pills reveal">
+      <span class="solucion-pill p1" style="animation-delay:0.1s;">🎂 Cumpleaños</span>
+      <span class="solucion-pill p2" style="animation-delay:0.2s;">💙 Meliversarios</span>
+      <span class="solucion-pill p3" style="animation-delay:0.3s;">✅ Reconocimientos</span>
+      <span class="solucion-pill p4" style="animation-delay:0.4s;">📅 Actividades</span>
+      <span class="solucion-pill p5" style="animation-delay:0.5s;">🏆 Principios Culturales</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 6: ARQUITECTURA ==================== -->
+<section class="slide slide-arquitectura" id="slide-5">
+  <h2 class="section-title reveal">¿Cómo funciona? <span style="color:#FFE600;">Super simple</span></h2>
+  
+  <div class="arq-flow reveal">
+    <div class="arq-step">
+      <div class="arq-circle c1">📝</div>
+      <div class="arq-label">El equipo llena</div>
+      <div class="arq-sub">Un formulario con sus datos personales, gustos y fechas</div>
+    </div>
+    <div class="arq-arrow">→</div>
+    <div class="arq-step">
+      <div class="arq-circle c2">📊</div>
+      <div class="arq-label">Se guarda automático</div>
+      <div class="arq-sub">Todo queda organizado en una hoja de cálculo</div>
+    </div>
+    <div class="arq-arrow">→</div>
+    <div class="arq-step">
+      <div class="arq-circle c3">📅</div>
+      <div class="arq-label">Aparece en el calendario</div>
+      <div class="arq-sub">Cada evento se muestra en su fecha con colores y estados</div>
+    </div>
+    <div class="arq-arrow">→</div>
+    <div class="arq-step">
+      <div class="arq-circle c4">🎉</div>
+      <div class="arq-label">¡Se celebra!</div>
+      <div class="arq-sub">Se marca el reconocimiento, se sube foto y queda registro</div>
+    </div>
+  </div>
+  
+  <div class="arq-outputs reveal">
+    <div class="arq-output">
+      <div class="arq-output-icon">🔔</div>
+      <div class="arq-output-label">Recordatorios<br>automáticos</div>
+    </div>
+    <div class="arq-output">
+      <div class="arq-output-icon">📸</div>
+      <div class="arq-output-label">Fotos guardadas<br>en Drive</div>
+    </div>
+    <div class="arq-output">
+      <div class="arq-output-icon">📚</div>
+      <div class="arq-output-label">Historial<br>completo</div>
+    </div>
+    <div class="arq-output">
+      <div class="arq-output-icon">📊</div>
+      <div class="arq-output-label">Estadísticas<br>en tiempo real</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 7: FUNCIONALIDADES ==================== -->
+<section class="slide slide-funcionalidades" id="slide-6">
+  <h2 class="section-title reveal">Todo lo que puede hacer 🚀</h2>
+  <div class="func-grid">
+    <div class="func-card fc1 reveal">
+      <div class="func-emoji">🎂</div>
+      <div class="func-title">Cumpleaños & Meliversarios</div>
+      <div class="func-desc">Cada fecha importante aparece automáticamente en el calendario con colores distintos y estado de reconocimiento.</div>
+      <div class="func-tags"><span class="func-tag">Automático</span><span class="func-tag">Visual</span></div>
+    </div>
+    <div class="func-card fc2 reveal" style="transition-delay:0.1s;">
+      <div class="func-emoji">✅</div>
+      <div class="func-title">Reconocimientos con 1 clic</div>
+      <div class="func-desc">Marca quién reconoció, deja un comentario y sube fotos. Todo queda en el historial.</div>
+      <div class="func-tags"><span class="func-tag">Fotos</span><span class="func-tag">Historial</span><span class="func-tag">Comentarios</span></div>
+    </div>
+    <div class="func-card fc3 reveal" style="transition-delay:0.2s;">
+      <div class="func-emoji">👥</div>
+      <div class="func-title">Filtro por Líderes</div>
+      <div class="func-desc">Cada líder puede filtrar y ver solo las personas de su equipo. Sin ruido, sin confusión.</div>
+      <div class="func-tags"><span class="func-tag">Multi-líder</span><span class="func-tag">Equipos</span></div>
+    </div>
+    <div class="func-card fc4 reveal" style="transition-delay:0.3s;">
+      <div class="func-emoji">📅</div>
+      <div class="func-title">Actividades Slack & Presencial</div>
+      <div class="func-desc">Programa actividades de equipo, marca como realizadas y lleva control de todas.</div>
+      <div class="func-tags"><span class="func-tag">Slack</span><span class="func-tag">Presencial</span><span class="func-tag">Tracking</span></div>
+    </div>
+    <div class="func-card fc5 reveal" style="transition-delay:0.4s;">
+      <div class="func-emoji">🏆</div>
+      <div class="func-title">Principios Culturales</div>
+      <div class="func-desc">Reconoce a compañeros por vivir los 6 principios culturales de MeLi. Con estadísticas y rankings.</div>
+      <div class="func-tags"><span class="func-tag">6 Principios</span><span class="func-tag">Rankings</span></div>
+    </div>
+    <div class="func-card fc6 reveal" style="transition-delay:0.5s;">
+      <div class="func-emoji">🔍</div>
+      <div class="func-title">Búsqueda & Tour Guiado</div>
+      <div class="func-desc">Busca cualquier persona o actividad al instante. Un tour de 7 pasos enseña a usar toda la herramienta.</div>
+      <div class="func-tags"><span class="func-tag">Buscador</span><span class="func-tag">Onboarding</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 8: CALENDARIO VISUAL ==================== -->
+<section class="slide slide-calendario" id="slide-7">
+  <h2 class="section-title reveal">Así se ve el <span style="color:#3483FA;">calendario</span> 📅</h2>
+  <div class="cal-mockup reveal" id="calMockup">
+    <!-- Se genera con JS -->
+  </div>
+</section>
+
+<!-- ==================== SLIDE 9: PRINCIPIOS CULTURALES ==================== -->
+<section class="slide slide-principios" id="slide-8">
+  <h2 class="section-title reveal">Celebramos <span style="color:#7B61FF;">cultura</span>, no solo fechas 🏆</h2>
+  <p class="reveal" style="text-align:center;color:rgba(255,255,255,0.5);margin-bottom:40px;max-width:600px;">Cualquier persona puede reconocer a un compañero por vivir estos principios</p>
+  <div class="principios-grid">
+    <div class="principio-card reveal" style="border-color:rgba(45,90,39,0.4);transition-delay:0.0s;">
+      <span class="p-emoji">🏆</span>
+      <span class="p-text">Competimos en equipo para ganar</span>
+    </div>
+    <div class="principio-card reveal" style="border-color:rgba(27,77,122,0.4);transition-delay:0.1s;">
+      <span class="p-emoji">⚡</span>
+      <span class="p-text">Ejecutamos con excelencia</span>
+    </div>
+    <div class="principio-card reveal" style="border-color:rgba(122,27,77,0.4);transition-delay:0.2s;">
+      <span class="p-emoji">🚀</span>
+      <span class="p-text">Emprendemos con visión de riesgo</span>
+    </div>
+    <div class="principio-card reveal" style="border-color:rgba(218,165,32,0.4);transition-delay:0.3s;">
+      <span class="p-emoji">💡</span>
+      <span class="p-text">Creamos valor para el usuario</span>
+    </div>
+    <div class="principio-card reveal" style="border-color:rgba(74,122,27,0.4);transition-delay:0.4s;">
+      <span class="p-emoji">🔄</span>
+      <span class="p-text">Estamos en beta continuo</span>
+    </div>
+    <div class="principio-card reveal" style="border-color:rgba(255,107,53,0.4);transition-delay:0.5s;">
+      <span class="p-emoji">💪</span>
+      <span class="p-text">Damos el máximo y nos divertimos</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 10: IMPACTO ==================== -->
+<section class="slide slide-datos" id="slide-9">
+  <h2 class="section-title reveal">El <span style="color:#00A650;">impacto</span> en números 📊</h2>
+  <div class="datos-grid">
+    <div class="dato-card reveal" style="transition-delay:0.0s;">
+      <div class="dato-icon">👥</div>
+      <div class="dato-number" style="--c1:#FFE600;--c2:#FFD000;" data-count="13">0</div>
+      <div class="dato-label">Personas del equipo</div>
+    </div>
+    <div class="dato-card reveal" style="transition-delay:0.1s;">
+      <div class="dato-icon">🎂</div>
+      <div class="dato-number" style="--c1:#F23D4F;--c2:#FF6B35;" data-count="24">0</div>
+      <div class="dato-label">Celebraciones al año</div>
+    </div>
+    <div class="dato-card reveal" style="transition-delay:0.2s;">
+      <div class="dato-icon">🏆</div>
+      <div class="dato-number" style="--c1:#7B61FF;--c2:#9B59B6;" data-count="6">0</div>
+      <div class="dato-label">Principios culturales</div>
+    </div>
+    <div class="dato-card reveal" style="transition-delay:0.3s;">
+      <div class="dato-icon">📊</div>
+      <div class="dato-number" style="--c1:#00A650;--c2:#00c853;" data-count="7">0</div>
+      <div class="dato-label">Hojas automatizadas</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 11: FEATURES EXTRA ==================== -->
+<section class="slide slide-features" id="slide-10">
+  <h2 class="section-title reveal">Detalles que hacen la <span style="color:#FFE600;">diferencia</span> ✨</h2>
+  <div class="features-list">
+    <div class="feature-item reveal">
+      <span class="feature-icon">🌤️</span>
+      <div class="feature-text">
+        <div class="feature-title">Clima del Mes</div>
+        <div class="feature-desc">Mide automáticamente la energía del equipo: de 😌 Tranquilo a 🔥 Muy Activo según las celebraciones.</div>
+      </div>
+    </div>
+    <div class="feature-item reveal" style="transition-delay:0.1s;">
+      <span class="feature-icon">📅</span>
+      <div class="feature-text">
+        <div class="feature-title">Vista Anual</div>
+        <div class="feature-desc">Un mapa de calor de todo el año mostrando qué meses tienen más celebraciones.</div>
+      </div>
+    </div>
+    <div class="feature-item reveal" style="transition-delay:0.2s;">
+      <span class="feature-icon">🎯</span>
+      <div class="feature-text">
+        <div class="feature-title">Tour Guiado de 7 Pasos</div>
+        <div class="feature-desc">Nadie se pierde. Un tour interactivo enseña cada función de la herramienta paso a paso.</div>
+      </div>
+    </div>
+    <div class="feature-item reveal" style="transition-delay:0.3s;">
+      <span class="feature-icon">🤖</span>
+      <div class="feature-text">
+        <div class="feature-title">Integración con Gemini</div>
+        <div class="feature-desc">Enlace directo a Google Gemini para generar textos creativos de reconocimiento.</div>
+      </div>
+    </div>
+    <div class="feature-item reveal" style="transition-delay:0.4s;">
+      <span class="feature-icon">♿</span>
+      <div class="feature-text">
+        <div class="feature-title">29 de Febrero Inteligente</div>
+        <div class="feature-desc">Si alguien cumple el 29 de febrero, el sistema ajusta automáticamente al 28 en años no bisiestos.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SLIDE 12: STACK ==================== -->
+<section class="slide slide-stack" id="slide-11">
+  <h2 class="section-title reveal">Construido con 🛠️</h2>
+  <div class="stack-visual reveal">
+    <div class="stack-item">
+      <span class="stack-icon">📝</span>
+      <span class="stack-label">Google Forms</span>
+    </div>
+    <div class="stack-item">
+      <span class="stack-icon">📊</span>
+      <span class="stack-label">Google Sheets</span>
+    </div>
+    <div class="stack-item">
+      <span class="stack-icon">⚡</span>
+      <span class="stack-label">Apps Script</span>
+    </div>
+    <div class="stack-item">
+      <span class="stack-icon">🌐</span>
+      <span class="stack-label">HTML/CSS/JS</span>
+    </div>
+    <div class="stack-item">
+      <span class="stack-icon">📁</span>
+      <span class="stack-label">Google Drive</span>
+    </div>
+    <div class="stack-item">
+      <span class="stack-icon">📅</span>
+      <span class="stack-label">Google Calendar</span>
+    </div>
+  </div>
+  <div class="stack-cost reveal">💰 Costo total: $0 · 100% Google Workspace</div>
+</section>
+
+<!-- ==================== SLIDE 13: CIERRE ==================== -->
+<section class="slide slide-cierre" id="slide-12">
+  <div class="confetti-container" id="confetti2"></div>
+  <div class="glow-ring"></div>
+  <div class="glow-ring"></div>
+  <div class="cierre-content">
+    <span class="cierre-emoji">🎉</span>
+    <h2 class="cierre-title">Porque celebrar a las personas<br>nunca debería ser difícil</h2>
+    <div class="cierre-name">Hecho con 💛 por Juan Sebastián Guerrero Rodríguez</div>
+    <p class="cierre-sub">Calendario de Celebraciones MeLi · 2024</p>
+    <div class="cierre-links">
+      <a href="#slide-0" class="cierre-link primary">🔄 Ver de nuevo</a>
+      <a href="https://github.com" target="_blank" class="cierre-link secondary">📂 Ver en GitHub</a>
+    </div>
+  </div>
+</section>
+
+<script>
+(function() {
+  // ==================== PARTICLES ====================
+  function createParticles(containerId, count) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const colors = ['#FFE600', '#3483FA', '#00A650', '#7B61FF', '#FF6B35', '#F23D4F'];
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = Math.random() * 6 + 3;
+      p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;background:${colors[i%colors.length]};animation-duration:${Math.random()*15+10}s;animation-delay:${Math.random()*10}s;`;
+      container.appendChild(p);
+    }
+  }
+
+  // ==================== CONFETTI ====================
+  function createConfetti(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const colors = ['#FFE600', '#3483FA', '#00A650', '#7B61FF', '#FF6B35', '#F23D4F', '#fff'];
+    for (let i = 0; i < 60; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      const size = Math.random() * 8 + 4;
+      const isCircle = Math.random() > 0.5;
+      c.style.cssText = `left:${Math.random()*100}%;width:${size}px;height:${isCircle?size:size*2.5}px;background:${colors[i%colors.length]};border-radius:${isCircle?'50%':'2px'};animation-duration:${Math.random()*4+3}s;animation-delay:${Math.random()*8}s;`;
+      container.appendChild(c);
+    }
+  }
+
+  // ==================== TEAM VISUAL ====================
+  function createTeam() {
+    const container = document.getElementById('teamVisual');
+    if (!container) return;
+    const members = ['👩‍💻','👨‍💻','👩‍💼','👨‍💼','👩‍🔧','👨‍🔧','👩‍🎨','👨‍🎤','👩‍🚀','👨‍🏫','👩‍⚕️','👨‍🍳'];
+    const colors = [
+      ['#3483FA','#2968C8'],['#00A650','#008c44'],['#FF6B35','#e55a2b'],
+      ['#7B61FF','#6248e0'],['#F23D4F','#d93344'],['#3483FA','#2968C8'],
+      ['#00A650','#008c44'],['#FF6B35','#e55a2b'],['#7B61FF','#6248e0'],
+      ['#F23D4F','#d93344'],['#3483FA','#2968C8'],['#00A650','#008c44']
+    ];
+
+    // Leader
+    const leader = document.createElement('div');
+    leader.className = 'team-leader';
+    leader.innerHTML = '👑';
+    leader.setAttribute('data-info', 'Líder');
+    container.appendChild(leader);
+
+    // Line break visual
+    const br = document.createElement('div');
+    br.style.cssText = 'width:100%;height:0;';
+    container.appendChild(br);
+
+    members.forEach((emoji, i) => {
+      const m = document.createElement('div');
+      m.className = 'team-member';
+      m.style.cssText = `background:linear-gradient(135deg,${colors[i][0]},${colors[i][1]});animation-delay:${i*0.1}s;`;
+      m.innerHTML = emoji;
+      container.appendChild(m);
+    });
+  }
+
+  // ==================== CALENDARIO MOCKUP ====================
+  function createCalendar() {
+    const container = document.getElementById('calMockup');
+    if (!container) return;
+    
+    const days = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const events = {
+      3: {type:'cumple', label:'🎂'},
+      7: {type:'act', label:'💬'},
+      12: {type:'meli', label:'💙'},
+      15: {type:'cumple', label:'🎂'},
+      18: {type:'today', label:''},
+      20: {type:'both', label:'🎂💙'},
+      22: {type:'act', label:'🏢'},
+      27: {type:'meli', label:'💙'}
+    };
+    
+    let html = `<div class="cal-header">
+      <div class="cal-title">Febrero 2025</div>
+      <div class="cal-nav">
+        <div class="cal-nav-btn">◀</div>
+        <div class="cal-nav-btn" style="background:#3483FA;border-color:#3483FA;">📍</div>
+        <div class="cal-nav-btn">▶</div>
+      </div>
+    </div><div class="cal-grid">`;
+    
+    days.forEach(d => { html += `<div class="cal-day-header">${d}</div>`; });
+    
+    // Febrero 2025 empieza en sábado (6)
+    for (let i = 0; i < 6; i++) html += '<div class="cal-day empty"></div>';
+    
+    for (let d = 1; d <= 28; d++) {
+      const ev = events[d];
+      let cls = 'cal-day';
+      let dots = '';
+      if (ev) {
+        if (ev.type === 'today') cls += ' today';
+        else if (ev.type === 'both') cls += ' has-both';
+        else if (ev.type === 'cumple') cls += ' has-cumple';
+        else if (ev.type === 'meli') cls += ' has-meli';
+        else if (ev.type === 'act') cls += ' has-act';
+        
+        if (ev.label) {
+          const dotColors = ev.type === 'cumple' ? ['#FFE600'] : ev.type === 'meli' ? ['#3483FA'] : ev.type === 'both' ? ['#FFE600','#3483FA'] : ['#7B61FF'];
+          dots = '<div class="cal-dots">' + dotColors.map(c => `<div class="cal-dot" style="background:${c}"></div>`).join('') + '</div>';
+        }
+      }
+      html += `<div class="${cls}"><span>${d}</span>${dots}</div>`;
+    }
+    
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  // ==================== PREGUNTA ANIMADA ====================
+  function animarPregunta() {
+    const text = '¿Cuándo fue la última vez que olvidaste el cumpleaños de alguien de tu equipo?';
+    const container = document.getElementById('preguntaText');
+    if (!container) return;
+    
+    const words = text.split(' ');
+    container.innerHTML = words.map((w, i) => 
+      `<span class="word" style="animation-delay:${0.5 + i * 0.12}s;">${w}&nbsp;</span>`
+    ).join('');
+  }
+
+  // ==================== COUNTER ANIMATION ====================
+  function animateCounters() {
+    document.querySelectorAll('.dato-number[data-count]').forEach(el => {
+      const target = parseInt(el.dataset.count);
+      const duration = 2000;
+      const start = performance.now();
+      
+      function update(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(target * eased);
+        if (progress < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+    });
+  }
+
+  // ==================== SCROLL REVEAL ====================
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        
+        // Trigger counters on slide 9
+        if (entry.target.closest('#slide-9')) {
+          setTimeout(animateCounters, 400);
+        }
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => observer.observe(el));
+
+  // ==================== NAVIGATION ====================
+  const slides = document.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('.nav-dot');
+
+  function updateNav() {
+    const scrollPos = window.scrollY + window.innerHeight / 2;
+    let current = 0;
+    
+    slides.forEach((slide, i) => {
+      if (scrollPos >= slide.offsetTop) current = i;
+    });
+    
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === current);
+    });
+
+    // Progress bar
+    const progress = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+    document.getElementById('progressBar').style.width = progress + '%';
+  }
+
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      const slideIndex = parseInt(dot.dataset.slide);
+      slides[slideIndex].scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  document.getElementById('prevBtn').addEventListener('click', () => {
+    const current = Math.round(window.scrollY / window.innerHeight);
+    if (current > 0) slides[current - 1].scrollIntoView({ behavior: 'smooth' });
+  });
+
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    const current = Math.round(window.scrollY / window.innerHeight);
+    if (current < slides.length - 1) slides[current + 1].scrollIntoView({ behavior: 'smooth' });
+  });
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    const current = Math.round(window.scrollY / window.innerHeight);
+    if (e.key === 'ArrowDown' || e.key === ' ') { 
+      e.preventDefault();
+      if (current < slides.length - 1) slides[current + 1].scrollIntoView({ behavior: 'smooth' });
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (current > 0) slides[current - 1].scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+
+  window.addEventListener('scroll', updateNav);
+
+  // ==================== INIT ====================
+  createParticles('particles1', 30);
+  createParticles('particles2', 20);
+  createConfetti('confetti1');
+  createConfetti('confetti2');
+  createTeam();
+  createCalendar();
+  animarPregunta();
+  updateNav();
+})();
+</script>
+</body>
+</html>
